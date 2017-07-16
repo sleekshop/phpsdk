@@ -523,6 +523,27 @@ private $post_data=array();
   return $this->snd_request($this->server,$post_data);
  }
 
+ /*
+ * This function is for querying the aggregate - request
+ */
+ public function aggregate($pipe=array())
+  {
+    $post_data=$this->post_data;
+    $post_data["request"]="aggregate";
+    $post_data["pipe"]=urlencode(serialize($pipe));
+    return $this->snd_request($this->server,$post_data);
+  }
+
+  /*
+   * This function resets the user_password
+   */
+  public function reset_user_password($args=array())
+  {
+   $post_data=$this->post_data;
+   $post_data["request"]="reset_user_password";
+   $post_data["args"]=urlencode(serialize($args));
+   return $this->snd_request($this->server,$post_data);
+  }
 
 /*
 * This function sends a post - request

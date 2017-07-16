@@ -157,6 +157,23 @@ class UserCtl
  	return($result);
  }
 
+ /*
+  * Reset user password
+  */
+  public function ResetPassword($args=array())
+   {
+     $sr=new SleekShopRequest();
+     $xml=$sr->reset_user_password($args);
+     $xml=new SimpleXMLElement($xml);
+     if($xml->getName()=="error") throw new Exception((string)$xml->message);
+    	$result=array();
+     $result["status"]=(string)$xml->status;
+     $result["id_user"]=(int)$xml->id_user;
+     $result["session_id"]=(string)$xml->session_id;
+     $result["email"]=(string)$xml->email;
+     $result["default_language"]=(string)$xml->default_language;
+     return($result);
+   }
 
 }
 
