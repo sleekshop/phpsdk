@@ -2,21 +2,21 @@
 
 class CategoriesCtl
 {
-	
+
   function __construct()
   {
-  
+
   }
 
-/* 
+/*
  * Delivers an array containing all categories with the parent defined by $id_parent
- */  
-public function GetCategories($id_parent=0,$lang=DEFAULT_LANGUAGE)
+ */
+public static function GetCategories($id_parent=0,$lang=DEFAULT_LANGUAGE)
  {
   $sr=new SleekShopRequest();
-  $xml=$sr->get_categories($id_parent,$lang);  
+  $xml=$sr->get_categories($id_parent,$lang);
   $xml=new SimpleXMLElement($xml);
-  
+
   $result=array();
   foreach($xml->shopcategory as $shopcategory)
   {
@@ -32,7 +32,6 @@ public function GetCategories($id_parent=0,$lang=DEFAULT_LANGUAGE)
   }
   return($result);
  }
-  
 
 }
 

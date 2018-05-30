@@ -13,7 +13,7 @@ class UserCtl
  /*
   * Logs in the user
   */
- public function Login($session="",$username="",$password="")
+ public static function Login($session="",$username="",$password="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->login_user($session,$username,$password);
@@ -31,7 +31,7 @@ class UserCtl
 /*
  * Logs out the user
  */
- public function LogOut($session="")
+ public static function LogOut($session="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->logout_user($session,$username,$password);
@@ -44,7 +44,7 @@ class UserCtl
  /*
   * Get the user - data
   */
- public function GetUserData($session="")
+ public static function GetUserData($session="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->get_user_data($session);
@@ -72,9 +72,8 @@ class UserCtl
 /*
  * Sets the user - data
  */
- public function SetUserData($session="",$args=array())
+ public static function SetUserData($session="",$args=array())
  {
-	 print_r($args);
  	$sr=new SleekShopRequest();
  	$xml=$sr->set_user_data($session,$args);
  	$xml=new SimpleXMLElement($xml);
@@ -87,7 +86,7 @@ class UserCtl
  /*
   * Sets the user - password
  */
- public function SetUserPassword($session="",$passwd1="",$passwd2="",$passwd3="")
+ public static function SetUserPassword($session="",$passwd1="",$passwd2="",$passwd3="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->set_user_password($session,$passwd1,$passwd2,$passwd3);
@@ -100,7 +99,7 @@ class UserCtl
  /*
   * Get the user - orders
  */
- public function GetUserOrders($session="")
+ public static function GetUserOrders($session="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->get_user_orders($session);
@@ -131,7 +130,7 @@ class UserCtl
 /*
  * Registering a user
  */
- public function RegisterUser($args=array(),$lang=DEFAULT_LANGUAGE)
+ public static function RegisterUser($args=array(),$lang=DEFAULT_LANGUAGE)
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->register_user($args,$lang);
@@ -147,7 +146,7 @@ class UserCtl
  /*
   * Verifies a user
  */
- public function VerifyUser($id_user=0,$session_id="")
+ public static function VerifyUser($id_user=0,$session_id="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->verify_user($id_user,$session_id);
@@ -157,23 +156,6 @@ class UserCtl
  	return($result);
  }
 
- /*
-  * Reset user password
-  */
-  public function ResetPassword($args=array())
-   {
-     $sr=new SleekShopRequest();
-     $xml=$sr->reset_user_password($args);
-     $xml=new SimpleXMLElement($xml);
-     if($xml->getName()=="error") throw new Exception((string)$xml->message);
-    	$result=array();
-     $result["status"]=(string)$xml->status;
-     $result["id_user"]=(int)$xml->id_user;
-     $result["session_id"]=(string)$xml->session_id;
-     $result["email"]=(string)$xml->email;
-     $result["default_language"]=(string)$xml->default_language;
-     return($result);
-   }
 
 }
 

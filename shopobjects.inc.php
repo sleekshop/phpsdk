@@ -9,18 +9,7 @@ class ShopobjectsCtl
   }
 
 
-/*
- * Derives the availability status as a label
- */
-private function get_availability_label($qty=0,$qty_warning=0,$allow_override=0,$active=0)
-{
-	if($active==0 OR $allow_override==1) return("success");
-	if($qty<$qty_warning AND $qty>0) return("warning");
-	if($qty==0) return("danger");
-	return("success");
-}
-
-private function get_shopobject_from_xml($so="", $type="product")
+private static function get_shopobject_from_xml($so="")
 {
 	$piecearray=array();
 	$piecearray["id"]=(int)$so->id;
@@ -30,17 +19,12 @@ private function get_shopobject_from_xml($so="", $type="product")
 	$piecearray["title"]=(string)$so->seo->title;
 	$piecearray["description"]=(string)$so->seo->description;
 	$piecearray["keywords"]=(string)$so->seo->keywords;
-	if($type=="product")
-	{
-		$piecearray["taxclass"]=(string)$so->metadata->taxclass->attributes()->name;
-		$piecearray["taxclass_calculation"]=(string)$so->metadata->taxclass->attributes()->calculation;
-		$piecearray["taxclass_value"]=(float)$so->metadata->taxclass;
-	    $piecearray["availability_quantity"]=(string)$so->availability->quantity;
-	    $piecearray["availability_quantity_warning"]=(string)$so->availability->quantity_warning;
-	    $piecearray["availability_allow_override"]=(string)$so->availability->allow_override;
-	    $piecearray["availability_active"]=(string)$so->availability->active;
-	    $piecearray["availability_label"]=self::get_availability_label($piecearray["availability_quantity"],$piecearray["availability_quantity_warning"],$piecearray["availability_allow_override"],$piecearray["availability_active"]);
-	}
+  $piecearray["element_number"]=(string)$so->metadata->element_number;
+	$piecearray["availability_quantity"]=(string)$so->availability->quantity;
+	$piecearray["availability_quantity_warning"]=(string)$so->availability->quantity_warning;
+	$piecearray["availability_allow_override"]=(string)$so->availability->allow_override;
+	$piecearray["availability_active"]=(string)$so->availability->active;
+	$piecearray["availability_label"]=self::get_availability_label($piecearray["availability_quantity"],$piecearray["availability_quantity_warning"],$piecearray["availability_allow_override"],$piecearray["availability_active"]);
 	$piecearray["creation_date"]=(string)$so->creation_date;
 	$attributes=array();
 	foreach($so->attributes->attribute as $attribute)
@@ -51,7 +35,10 @@ private function get_shopobject_from_xml($so="", $type="product")
 		$attr["name"]=(string)$attribute->name;
 		$attr["label"]=(string)$attribute->label;
 		$attr["value"]=(string)$attribute->value;
-		if($attr["type"]=="TXT") $attr["value"]=str_replace("\n","<br>",$attr["value"]);
+    $attr["value"]=htmlspecialchars_decode($attr["value"]);
+  	if($attr["type"]=="TXT") $attr["value"]=str_replace("\n","<br>",$attr["value"]);
+
+    //$attr["value"]=html_entity_decode($attr["value"]);
 		if((string)$attribute->attributes()->type=="IMG")
 		{
 			$width=intval((string)$attribute->width);
@@ -73,24 +60,6 @@ private function get_shopobject_from_xml($so="", $type="product")
 			}
 			$attr["value"]=$prods_array;
 		}
-		if((string)$attribute->attributes()->type=="SELECT:CHAR")
-		{
-			foreach($attribute->select->option as $opt)
-			{
-				$attr["select"][(string)$opt->attributes()->id]=(string)$opt;
-			}
-		}
-    if((string)$attribute->attributes()->type=="SELECT:FLOAT")
-    {
-      foreach($attribute->select->option as $opt)
-      {
-        $attr["select"][(float)$opt->attributes()->id]=(string)$opt;
-      }
-    }
-    if((string)$attribute->attributes()->type=="HTML")
-    {
-      $attr["value"]=htmlspecialchars_decode($attr["value"]);
-    }
 		$attributes[(string)$attribute->name]=$attr;
 	}
 	$variations=array();
@@ -106,22 +75,22 @@ private function get_shopobject_from_xml($so="", $type="product")
 
 
 
-private function get_products_from_xml($xml="")
+private static function get_products_from_xml($xml="")
 {
 	$result=array();
 	foreach($xml->product as $so)
 	{
-     $result[(string)$so->name]=self::get_shopobject_from_xml($so, "product");
+     $result[(string)$so->name]=self::get_shopobject_from_xml($so);
 	}
 	return($result);
 }
 
-private function get_contents_from_xml($xml="")
+private static function get_contents_from_xml($xml="")
 {
 	$result=array();
 	foreach($xml->content as $so)
 	{
-		$result[(string)$so->name]=self::get_shopobject_from_xml($so,"content");
+		$result[(string)$so->name]=self::get_shopobject_from_xml($so);
 		$result["byclass"][(string)$so->class][]=$result[(string)$so->name];
 	}
 	return($result);
@@ -132,10 +101,10 @@ private function get_contents_from_xml($xml="")
 /*
  * Delivers an array containing all categories with the parent defined by $id_parent
  */
-public function GetShopobjects($id_category=0,$lang=DEFAULT_LANGUAGE,$order_column="",$order="ASC",$left_limit=0,$right_limit=0,$needed_attributes=array(),$country=DEFAULT_COUNTRY)
+public static function GetShopobjects($id_category=0,$lang=DEFAULT_LANGUAGE,$order_column="",$order="ASC",$left_limit=0,$right_limit=0,$needed_attributes=array())
  {
   $sr=new SleekShopRequest();
-  $xml=$sr->get_shopobjects_in_category($id_category,$lang,$order_column,$order,$left_limit,$right_limit,$needed_attributes,$country);
+  $xml=$sr->get_shopobjects_in_category($id_category,$lang,$order_column,$order,$left_limit,$right_limit,$needed_attributes);
   $xml=new SimpleXMLElement($xml);
   $result=array();
   $result["id_category"]=(int)$xml->category->id;
@@ -159,10 +128,10 @@ public function GetShopobjects($id_category=0,$lang=DEFAULT_LANGUAGE,$order_colu
 /*
  * Delivers an array containing all categories with the parent defined by $permalink
 */
-public function SeoGetShopobjects($permalink,$lang=DEFAULT_LANGUAGE,$order_column="",$order="ASC",$left_limit=0,$right_limit=0,$needed_attributes=array(),$country=DEFAULT_COUNTRY)
+public static function SeoGetShopobjects($permalink,$order_column="",$order="ASC",$left_limit=0,$right_limit=0,$needed_attributes=array())
 {
 	$sr=new SleekShopRequest();
-	$xml=$sr->seo_get_shopobjects_in_category($permalink,$lang,$order_column,$order,$left_limit,$right_limit,$needed_attributes,$country);
+	$xml=$sr->seo_get_shopobjects_in_category($permalink,$order_column,$order,$left_limit,$right_limit,$needed_attributes);
 	$xml=new SimpleXMLElement($xml);
 	$result=array();
 	$result["id_category"]=(int)$xml->category->id;
@@ -189,10 +158,10 @@ public function SeoGetShopobjects($permalink,$lang=DEFAULT_LANGUAGE,$order_colum
 /*
  * Delivers the shopobject - details of a given shopobject determined by its id
  */
-public function GetProductDetails($id_product=0,$lang=DEFAULT_LANGUAGE,$country=DEFAULT_COUNTRY)
+public static function GetProductDetails($id_product=0,$lang=DEFAULT_LANGUAGE)
 {
 	$sr=new SleekShopRequest();
-	$xml=$sr->get_product_details($id_product,$lang,$country);
+	$xml=$sr->get_product_details($id_product,$lang);
 	$xml=new SimpleXMLElement($xml);
 	$result=self::get_shopobject_from_xml($xml);
 	return($result);
@@ -202,12 +171,12 @@ public function GetProductDetails($id_product=0,$lang=DEFAULT_LANGUAGE,$country=
 /*
  * Delivers the shopobject - details of a given shopobject determined by its id
 */
-public function GetContentDetails($id_content=0,$lang=DEFAULT_LANGUAGE)
+public static function GetContentDetails($id_content=0,$lang=DEFAULT_LANGUAGE)
 {
 	$sr=new SleekShopRequest();
-	$xml=$sr->get_content_details($id_content,$lang,"content");
+	$xml=$sr->get_content_details($id_content,$lang);
 	$xml=new SimpleXMLElement($xml);
-	$result=self::get_shopobject_from_xml($xml,"content");
+	$result=self::get_shopobject_from_xml($xml);
 	return($result);
 }
 
@@ -216,7 +185,7 @@ public function GetContentDetails($id_content=0,$lang=DEFAULT_LANGUAGE)
 /*
  * Delivers Shopobject - Details given a permalink
  */
-public function SeoGetProductDetails($permalink="")
+public static function SeoGetProductDetails($permalink="")
 {
 	$sr=new SleekShopRequest();
 	$xml=$sr->seo_get_product_details($permalink);
@@ -229,7 +198,7 @@ public function SeoGetProductDetails($permalink="")
 /*
  * Delivers Shopobject - Details given a permalink
 */
-public function SeoGetContentDetails($permalink="")
+public static function SeoGetContentDetails($permalink="")
 {
 	$sr=new SleekShopRequest();
 	$xml=$sr->seo_get_content_details($permalink);
@@ -242,7 +211,7 @@ public function SeoGetContentDetails($permalink="")
 /*
  * Search
 */
-public function SearchProducts($constraint=array(),$left_limit,$right_limit,$order_columns=array(),$order_type="ASC",$lang=DEFAULT_LANGUAGE,$needed_attributes=array())
+public static function SearchProducts($constraint=array(),$left_limit,$right_limit,$order_columns=array(),$order_type="ASC",$lang=DEFAULT_LANGUAGE,$needed_attributes=array())
 {
 	$sr=new SleekShopRequest();
 	$xml=$sr->search_products($constraint,$left_limit,$right_limit,$order_columns,$order_type,$lang,$needed_attributes);
@@ -251,6 +220,48 @@ public function SearchProducts($constraint=array(),$left_limit,$right_limit,$ord
     $result["count"]=(int)$xml->count;
     return($result);
 }
+
+
+/*
+* transforming a search - result especially neccessary for the aggregate - function
+*/
+public function TransformSearch($xml="")
+ {
+   $result=array();
+ 	$result["id_category"]=(int)$xml->category->id;
+ 	$result["name"]=(string)$xml->category->name;
+  $result["label"]=(string)$xml->category->label;
+ 	$result["permalink"]=(string)$xml->category->seo->permalink;
+ 	$result["title"]=(string)$xml->category->seo->title;
+ 	$result["description"]=(string)$xml->category->seo->description;
+ 	$result["keywords"]=(string)$xml->category->seo->keywords;
+ 	$attributes=array();
+ 	foreach($xml->category->attributes->attribute as $attr)
+ 	{
+ 		$attributes[(string)$attr->attributes()->name]=(string)$attr;
+ 	}
+ 	$result["attributes"]=$attributes;
+ 	$result["products"]=self::get_products_from_xml($xml->products);
+ 	$result["contents"]=self::get_contents_from_xml($xml->contents);
+  return($result);
+ }
+
+ /*
+ * transforming a search - result especially neccessary for the aggregate - function
+ */
+ public function TransformSearchDistinct($xml="")
+  {
+    $result=array();
+
+  	$result["count"]=(int)$xml->count;
+  	$fields=array();
+  	foreach($xml->field as $field)
+  	{
+  		$fields[]=(string)$field;
+  	}
+  	$result["fields"]=$fields;
+    return($result);
+  }
 
 
 }

@@ -4,25 +4,24 @@
 * version: 1.3.0.0
 * (c) VitaBytes 2011 - Kaveh Raji
 */
-
-define("USERNAME","username");
-define("SERVER","http://192.168.0.10/srv/service/");
-define("LICENSE_KEY","license_key");
-
+//die("Wir updaten unsere Seite bitte haben Sie etwas Geduld.");
+define("LICENCE_USERNAME","");
+define("SERVER","https://demo.sleekshop.net/srv/service/");
+define("LICENCE_PASSWORD","");
 
 class SleekShopRequest
 {
 private $server="";
-private $username="";
-private $license_key="";
+private $licence_username="";
+private $licence_password="";
 private $post_data=array();
 
  public function __construct()
  {
   $this->server=SERVER;
-  $this->username=USERNAME;
-  $this->license_key=LICENSE_KEY;
-  $this->post_data=array("username"=>$this->username,"license_key"=>$this->license_key);
+  $this->licence_username=LICENCE_USERNAME;
+  $this->licence_password=LICENCE_PASSWORD;
+  $this->post_data=array("licence_username"=>$this->licence_username,"licence_password"=>$this->licence_password);
  }
 
 
@@ -59,7 +58,7 @@ private $post_data=array();
   $post_data["order"]=$order;
   $post_data["left_limit"]=$left_limit;
   $post_data["right_limit"]=$right_limit;
-  $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   $post_data["country"]=$country;
   return $this->snd_request($this->server,$post_data);
  }
@@ -83,7 +82,7 @@ private $post_data=array();
   $post_data["order"]=$order;
   $post_data["left_limit"]=$left_limit;
   $post_data["right_limit"]=$right_limit;
-  $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   $post_data["country"]=$country;
   return $this->snd_request($this->server,$post_data);
  }
@@ -97,7 +96,7 @@ private $post_data=array();
   * Order Column determines the order column
   * The Order determines the order
   */
- public function get_contents_in_category($id_category=0,$lang=DEFAULT_LANGUAGE,$order_column="",$order="ASC",$left_limit=0,$right_limit=0,$needed_attributes=array())
+ public function get_contents_in_category($id_category=0,$lang=DEFAULT_LANGUAGEE,$order_column="",$order="ASC",$left_limit=0,$right_limit=0,$needed_attributes=array())
  {
   $post_data=$this->post_data;
   $post_data["request"]="get_contents_in_category";
@@ -107,7 +106,7 @@ private $post_data=array();
   $post_data["order"]=$order;
   $post_data["left_limit"]=$left_limit;
   $post_data["right_limit"]=$right_limit;
-  $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   return $this->snd_request($this->server,$post_data);
  }
 
@@ -126,7 +125,7 @@ private $post_data=array();
   $post_data["order"]=$order;
   $post_data["left_limit"]=$left_limit;
   $post_data["right_limit"]=$right_limit;
-  $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   $post_data["country"]=$country;
   return $this->snd_request($this->server,$post_data);
  }
@@ -199,7 +198,7 @@ private $post_data=array();
   $post_data["name_field"]=$name_field;
   $post_data["description_field"]=$description_field;
   $post_data["language"]=$language;
-  $post_data["attributes"]=urlencode(serialize($attributes));
+  $post_data["attributes"]=json_encode($attributes);
   $post_data["country"]=$country;
   return $this->snd_request($this->server,$post_data);
  }
@@ -241,7 +240,7 @@ private $post_data=array();
   $post_data["session"]=$session;
   foreach($args as $key=>$value)
   {
-   if($key=="attributes") $value=urlencode(serialize($value));
+   if($key=="attributes") $value=json_encode($value);
    $post_data[$key]=$value;
   }
   return $this->snd_request($this->server,$post_data);
@@ -289,7 +288,7 @@ private $post_data=array();
   $post_data=$this->post_data;
   $post_data["request"]="do_payment";
   $post_data["id_order"]=$id_order;
-  $post_data["args"]=urlencode(serialize($args));
+  $post_data["args"]=json_encode($args);
   return($this->snd_request($this->server,$post_data));
  }
 
@@ -301,12 +300,11 @@ private $post_data=array();
   {
    $post_data=$this->post_data;
    $post_data["request"]="search_products";
-   $i=0;
-   $post_data["constraint"]=urlencode(serialize($constraint));
+   $post_data["constraint"]=json_encode($constraint);
    $post_data["left_limit"]=$left_limit;
    $post_data["right_limit"]=$right_limit;
-   $post_data["order_columns"]=urlencode(serialize($order_columns));
-   $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+   $post_data["order_columns"]=json_encode($order_columns);
+   $post_data["needed_attributes"]=json_encode($needed_attributes);
    $post_data["order_type"]=$order_type;
    $post_data["language"]=$lang;
    $post_data["country"]=$country;
@@ -314,14 +312,26 @@ private $post_data=array();
   }
 
 
- /*
-  * This function is for registering a new user
-  */
+    function search_distinct_products($field,$constraint,$lang)
+    {
+        $post_data=$this->post_data;
+        $post_data['request'] = 'search_distinct_products';
+        $post_data['field'] = $field;
+        $post_data['constraint'] = json_encode($constraint);
+        $post_data['language'] = $lang;
+        return($this->snd_request($this->server,$post_data));
+    }
+    // search_distinct_products("main.name",array("name"=>"test"),"de_DE);
+
+
+    /*
+     * This function is for registering a new user
+     */
  public function register_user($args=array(),$language=DEFAULT_LANGUAGE)
   {
    $post_data=$this->post_data;
    $post_data["request"]="register_user";
-   $post_data["args"]=urlencode(serialize($args));
+   $post_data["args"]=json_encode($args);
    $post_data["language"]=$language;
    return($this->snd_request($this->server,$post_data));
   }
@@ -409,7 +419,7 @@ private $post_data=array();
    $post_data=$this->post_data;
    $post_data["request"]="set_user_data";
    $post_data["session"]=$session;
-   $post_data["attributes"]=urlencode(serialize($args));
+   $post_data["attributes"]=json_encode($args);
    return($this->snd_request($this->server,$post_data));
   }
 
@@ -418,12 +428,13 @@ private $post_data=array();
  * This function delivers an xml - containing all neccessary - infos of a specific product determined by permalink
  * We also need to deliver the lang
  */
- public function seo_get_product_details($permalink="",$country=DEFAULT_COUNTRY)
+ public function seo_get_product_details($permalink="",$needed_attributes=array(),$country=DEFAULT_COUNTRY)
  {
   $post_data=$this->post_data;
   $post_data["request"]="seo_get_product_details";
   $post_data["permalink"]=$permalink;
   $post_data["country"]=$country;
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   return $this->snd_request($this->server,$post_data);
  }
 
@@ -438,9 +449,6 @@ private $post_data=array();
   $post_data["permalink"]=$permalink;
   return $this->snd_request($this->server,$post_data);
  }
-
-
-
 
 /*
   * This function derives all products in a given category determined by ist permalink
@@ -459,7 +467,7 @@ private $post_data=array();
   $post_data["order"]=$order;
   $post_data["left_limit"]=$left_limit;
   $post_data["right_limit"]=$right_limit;
-  $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   $post_data["country"]=$country;
   return $this->snd_request($this->server,$post_data);
  }
@@ -482,7 +490,7 @@ private $post_data=array();
   $post_data["order"]=$order;
   $post_data["left_limit"]=$left_limit;
   $post_data["right_limit"]=$right_limit;
-  $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   return $this->snd_request($this->server,$post_data);
  }
 
@@ -506,7 +514,7 @@ private $post_data=array();
   $post_data["left_limit"]=$left_limit;
   $post_data["right_limit"]=$right_limit;
   $post_data["country"]=$country;
-  $post_data["needed_attributes"]=urlencode(serialize($needed_attributes));
+  $post_data["needed_attributes"]=json_encode($needed_attributes);
   return $this->snd_request($this->server,$post_data);
  }
 
@@ -519,31 +527,48 @@ private $post_data=array();
   $post_data=$this->post_data;
   $post_data["request"]="add_delivery_costs";
   $post_data["session"]=$session;
-  $post_data["delivery_costs"]=urlencode(serialize($delivery_costs));
+  $post_data["delivery_costs"]=json_encode($delivery_costs);
+  return $this->snd_request($this->server,$post_data);
+ }
+
+
+/*
+* This function is for querying the aggregate - request
+*/
+public function aggregate($pipe=array())
+ {
+   $post_data=$this->post_data;
+   $post_data["request"]="aggregate";
+   $post_data["pipe"]=json_encode($pipe);
+   return $this->snd_request($this->server,$post_data);
+ }
+
+ /*
+  * This function resets the user_password
+  */
+ public function reset_user_password($args=array())
+ {
+  $post_data=$this->post_data;
+  $post_data["request"]="reset_user_password";
+  $post_data["args"]=json_encode($args);
   return $this->snd_request($this->server,$post_data);
  }
 
  /*
- * This function is for querying the aggregate - request
- */
- public function aggregate($pipe=array())
-  {
-    $post_data=$this->post_data;
-    $post_data["request"]="aggregate";
-    $post_data["pipe"]=urlencode(serialize($pipe));
-    return $this->snd_request($this->server,$post_data);
-  }
-
-  /*
-   * This function resets the user_password
-   */
-  public function reset_user_password($args=array())
-  {
-   $post_data=$this->post_data;
-   $post_data["request"]="reset_user_password";
-   $post_data["args"]=urlencode(serialize($args));
-   return $this->snd_request($this->server,$post_data);
-  }
+  * This function is for searching the orders
+  */
+ public function search_orders($constraint=array(),$left_limit=0,$right_limit=0,$order_columns=array(),$order_type="ASC",$language=DEFAULT_LANGUAGE)
+ {
+  $post_data=$this->post_data;
+  $post_data["request"]="search_orders";
+  $post_data["constraint"]=json_encode($constraint);
+  $post_data["left_limit"]=$left_limit;
+  $post_data["right_limit"]=$right_limit;
+  $post_data["order_columns"]=json_encode($order_columns);
+  $post_data["order_type"]=$order_type;
+  $post_data["language"]=$language;
+  return $this->snd_request($this->server,$post_data);
+ }
 
 /*
 * This function sends a post - request
@@ -553,8 +578,6 @@ private $post_data=array();
 */
 private function snd_request( $url, $postdata, $useragent = 'PHPPost/1.0' )
 {
-
-
     $url_info = parse_url( $url );
     $senddata = '';
 
@@ -583,8 +606,8 @@ private function snd_request( $url, $postdata, $useragent = 'PHPPost/1.0' )
 
     /* loop postdata and convert it */
 
-   $senddata=$postdata;
-  $senddata=http_build_query($senddata);
+    $senddata=$postdata;
+    $senddata=http_build_query($senddata);
 
     /* HTTP POST headers */
     $out = "POST " . (isset($url_info['path'])?$url_info['path']:'/') .

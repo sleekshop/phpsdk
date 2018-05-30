@@ -8,9 +8,7 @@ class OrderCtl
 
   }
 
-
-
-private function get_order_details($xml="")
+private static function get_order_details($xml="")
 {
 	$result=array();
 	$result["id_user"]=(int)$xml->user->id_user;
@@ -43,7 +41,6 @@ private function get_order_details($xml="")
 	$result["delivery_state"]=(string)$xml->delivery_state;
 	$result["delivery_city"]=(string)$xml->delivery_city;
 	$result["delivery_country"]=(string)$xml->delivery_country;
-	$result["delivery_country_code"]=(string)$xml->delivery_country_code;
 	$result["invoice_companyname"]=(string)$xml->invoice_companyname;
 	$result["invoice_department"]=(string)$xml->invoice_department;
 	$result["invoice_salutation"]=(string)$xml->invoice_salutation;
@@ -55,7 +52,6 @@ private function get_order_details($xml="")
 	$result["invoice_state"]=(string)$xml->invoice_state;
 	$result["invoice_city"]=(string)$xml->invoice_city;
 	$result["invoice_country"]=(string)$xml->invoice_country;
-	$result["invoice_country_code"]=(string)$xml->invoice_country_code;
 	$result["note"]=(string)$xml->note;
 	$result["email"]=(string)$xml->email;
 	return($result);
@@ -65,7 +61,7 @@ private function get_order_details($xml="")
 /*
  * Set order details
  */
-public function SetOrderDetails($session="",$args=array())
+public static function SetOrderDetails($session="",$args=array())
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->set_order_details($session,$args);
@@ -77,7 +73,7 @@ public function SetOrderDetails($session="",$args=array())
  /*
   * Gets the order details
   */
- public function GetOrderDetails($session="")
+ public static function GetOrderDetails($session="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->get_order_details($session,$args);
@@ -89,7 +85,7 @@ public function SetOrderDetails($session="",$args=array())
 /*
  * Adds the delivery_costs to the order
  */
- public function AddDeliveryCosts($session="",$delivery_costs=array())
+ public static function AddDeliveryCosts($session="",$delivery_costs=array())
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->add_delivery_costs($session,$delivery_costs);
@@ -99,7 +95,7 @@ public function SetOrderDetails($session="",$args=array())
 /*
  * Checks out the order
  */
- public function Checkout($session="")
+ public static function Checkout($session="")
  {
  	$sr=new SleekShopRequest();
  	$xml=$sr->checkout($session);
@@ -113,21 +109,55 @@ public function SetOrderDetails($session="",$args=array())
     return($result);
  }
 
-/*
- * Initiates the Payment
- */
- public function DoPayment($id_order=0,$args=array())
- {
- 	$sr=new SleekShopRequest();
- 	$xml=$sr->do_payment($id_order,$args);
- 	$xml=new SimpleXMLElement($xml);
- 	$result=array();
- 	$result["method"]=(string)$xml->method;
- 	$result["status"]=(string)$xml->status;
- 	$result["redirect"]=html_entity_decode((string)($xml->redirect));
- 	return($result);
- }
-
+ /*
+  * Searching the orders
+  */
+  public static function SearchOrders($constraint=array(),$left_limit=0,$right_limit=0,$order_columns=array(),$order_type="ASC",$language=DEFAULT_LANGUAGE)
+  {
+  	$sr=new SleekShopRequest();
+  	$xml=$sr->search_orders($constraint,$left_limit,$right_limit,$order_columns,$order_type,$language);
+    $xml=new SimpleXMLElement($xml);
+    $result=array();
+    foreach($xml->order as $order)
+    {
+      $piece=array();
+      $piece["id"]=(int)$order->id;
+      $piece["order_payment_method"]=(string)$order->payment_method;
+      $piece["order_delivery_method"]=(string)$order->delivery_method;
+      $piece["order_payment_state"]=(string)$order->payment_state->name;
+      $piece["order_delivery_state"]=(string)$order->delivery_state->name;
+      $piece["order_state"]=(string)$order->order_state;
+      $piece["order_number"]=(string)$order->order_number;
+      $piece["creation_date"]=(string)$order->creation_date;
+      $piece["delivery_companyname"]=(string)$order->delivery_companyname;
+      $piece["delivery_department"]=(string)$order->delivery_department;
+      $piece["delivery_salutation"]=(string)$order->order_delivery_salutation;
+      $piece["delivery_firstname"]=(string)$order->order_delivery_firstname;
+      $piece["delivery_lastname"]=(string)$order->order_delivery_lastname;
+      $piece["delivery_street"]=(string)$order->order_delivery_street;
+      $piece["delivery_number"]=(string)$order->order_delivery_number;
+      $piece["delivery_zip"]=(string)$order->order_delivery_zip;
+      $piece["delivery_state"]=(string)$order->order_delivery_state;
+      $piece["delivery_city"]=(string)$order->order_delivery_city;
+      $piece["delivery_country"]=(string)$order->order_delivery_country;
+      $piece["invoice_companyname"]=(string)$order->order_invoice_companyname;
+      $piece["invoice_department"]=(string)$order->order_invoice_department;
+      $piece["invoice_salutation"]=(string)$order->order_invoice_salutation;
+      $piece["invoice_firstname"]=(string)$order->order_invoice_firstname;
+      $piece["invoice_lastname"]=(string)$order->order_invoice_lastname;
+      $piece["invoice_street"]=(string)$order->order_invoice_street;
+      $piece["invoice_number"]=(string)$order->order_invoice_number;
+      $piece["invoice_zip"]=(string)$order->order_invoice_zip;
+      $piece["invoice_state"]=(string)$order->order_invoice_state;
+      $piece["invoice_city"]=(string)$order->order_invoice_city;
+      $piece["invoice_country"]=(string)$order->order_invoice_country;
+      $piece["note"]=(string)$order->order_note;
+      $piece["email"]=(string)$order->order_email;
+      $piece["cart"]=CartCtl::get_cart_array($order->cart);
+      $result[]=$piece;
+    }
+  	return($result);
+  }
 }
 
 ?>
