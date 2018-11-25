@@ -1,0 +1,25 @@
+{
+    "name": "sleekshop/phpsdk",
+    "description": "Sleekshop PHP SDK",
+    "type": "library",
+    "homepage": "https://sleekshop.io",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sleekshop Developers",
+            "email": "info@sleekshop.io",
+            "homepage": "https://sleekshop.io"
+        },
+        {
+            "name": "Balamurali Pandranki",
+            "email": "balamurali@live.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+          "Sleekshop\\": "src"
+        }
+      },
+    "require": {}
+}
